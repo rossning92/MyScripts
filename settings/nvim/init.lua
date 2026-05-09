@@ -1,5 +1,7 @@
 -- A starting point for Neovim config: https://github.com/nvim-lua/kickstart.nvim/blob/master/init.lua
 
+vim.loader.enable() -- Cache Lua bytecode to speed up require()
+
 vim.wo.relativenumber = true
 vim.wo.number = true
 vim.g.mapleader = " "
@@ -8,6 +10,10 @@ vim.opt.clipboard = "unnamedplus" -- Use system clipboard
 vim.opt.termguicolors = true
 vim.opt.mouse = ""                -- Disable mouse
 vim.opt.messagesopt = "wait:1000,history:500"
+
+vim.g.loaded_netrw = 1         -- built-in file explorer (replaced by telescope)
+vim.g.loaded_netrwPlugin = 1   -- netrw's plugin wrapper
+vim.g.loaded_matchit = 1       -- extended % matching for HTML tags, if/else, etc.
 
 -- Better up/down movement
 vim.keymap.set('n', '<up>', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })

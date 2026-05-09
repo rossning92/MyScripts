@@ -1363,25 +1363,29 @@ class Script:
                     popen_extra_args["close_fds"] = True
                 no_wait = True
 
-            elif sys.platform == "win32" and self.cfg["minimized"]:
-                startupinfo = subprocess.STARTUPINFO()
-                startupinfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
-                SW_MINIMIZE = 6
-                startupinfo.wShowWindow = SW_MINIMIZE
-                popen_extra_args["startupinfo"] = startupinfo
-
-                popen_extra_args["creationflags"] = (
-                    subprocess.CREATE_NEW_CONSOLE | subprocess.CREATE_NEW_PROCESS_GROUP
-                )
-                popen_extra_args["close_fds"] = True
-                no_wait = True
-
             elif new_window:
                 if restart_instance and single_instance:
                     self.__close_window(run_in_tmux=run_in_tmux)
 
                 try:
-                    if sys.platform == "win32":
+                    if run_in_tmux or is_in_tmux():
+                        arg_list = (
+                            [
+                                "tmux",
+                                "new-window",
+                                "-a",  # Insert window after the current window
+                                "-n",
+                                self.get_window_title(),
+                            ]
+                            + [  # Pass environmental variable to new window.
+                                item
+                                for k, v in env.items()
+                                for item in ("-e", f"{k}={v}")
+                            ]
+                            + arg_list
+                        )
+
+                    elif sys.platform == "win32":
                         from utils.term.windowsterminal import (
                             WINDOWS_TERMINAL_EXECUTABLE,
                             wrap_args_wt,
@@ -1442,41 +1446,23 @@ class Script:
                             no_wait = True
                             open_in_terminal = True
 
-                        elif self.__get_terminal() == "powershell":
-                            title = self.get_window_title().replace("'", "''")
-                            arg_list = [
-                                "powershell",
-                                "-Command",
-                                f"$Host.UI.RawUI.WindowTitle = '{title}'; "
-                                + args_to_str(arg_list, shell_type="powershell"),
-                            ]
+                        else:
                             popen_extra_args["creationflags"] = (
                                 subprocess.CREATE_NEW_CONSOLE
                             )
+                            if self.cfg["minimized"] or self.cfg["maximized"]:
+                                startupinfo = subprocess.STARTUPINFO()
+                                startupinfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
+                                if self.cfg["minimized"]:
+                                    SW_MINIMIZE = 6
+                                    startupinfo.wShowWindow = SW_MINIMIZE
+                                else:
+                                    SW_MAXIMIZE = 3
+                                    startupinfo.wShowWindow = SW_MAXIMIZE
+                                popen_extra_args["startupinfo"] = startupinfo
+
                             no_wait = True
                             open_in_terminal = True
-
-                        else:
-                            logging.warning(
-                                "No terminal installed, ignore `newWindow` option."
-                            )
-
-                    elif run_in_tmux or is_in_tmux():
-                        arg_list = (
-                            [
-                                "tmux",
-                                "new-window",
-                                "-a",  # Insert window after the current window
-                                "-n",
-                                self.get_window_title(),
-                            ]
-                            + [  # Pass environmental variable to new window.
-                                item
-                                for k, v in env.items()
-                                for item in ("-e", f"{k}={v}")
-                            ]
-                            + arg_list
-                        )
 
                     elif sys.platform in ("linux", "android"):
                         if _is_in_x_window_system():

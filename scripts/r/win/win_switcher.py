@@ -56,7 +56,7 @@ class WinSwitcherMenu(Menu[WindowItem]):
             for n in (notifications or [])
             if isinstance(n, dict) and isinstance(n.get("app"), str)
         }
-        self.items = get_windows(sort_by_title=False, script_status=self.script_status)
+        self.items = get_windows(script_status=self.script_status)
 
         if message:
             self.set_message(message)
@@ -92,7 +92,7 @@ class WinSwitcherMenu(Menu[WindowItem]):
         if win_ids_to_wait:
             timeout = time.time() + _WINDOW_CLOSE_WAIT_SECONDS
             while time.time() < timeout:
-                current_ids = {w.id for w in get_windows(sort_by_title=False)}
+                current_ids = {w.id for w in get_windows()}
                 win_ids_to_wait = [wid for wid in win_ids_to_wait if wid in current_ids]
                 if not win_ids_to_wait:
                     break

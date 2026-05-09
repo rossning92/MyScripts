@@ -1,10 +1,11 @@
 return {
     -- Detect tabstop and shiftwidth automatically
-    'NMAC427/guess-indent.nvim',
+    { 'NMAC427/guess-indent.nvim', event = 'BufReadPost' },
 
     -- Setup LSP (Language Server Protocol)
     {
         'neovim/nvim-lspconfig',
+        event = { 'BufReadPre', 'BufNewFile' },
         dependencies = {
             -- Automatically install LSPs and related tools to stdpath for Neovim
             -- Mason must be loaded before its dependents so we need to set it up here.
@@ -14,7 +15,7 @@ return {
             'WhoIsSethDaniel/mason-tool-installer.nvim',
 
             -- Useful status updates for LSP.
-            { 'j-hui/fidget.nvim', opts = {} },
+            { 'j-hui/fidget.nvim', event = 'LspAttach', opts = {} },
 
             -- Allows extra capabilities provided by blink.cmp
             'saghen/blink.cmp',
@@ -230,7 +231,7 @@ return {
     -- https://cmp.saghen.dev/installation.html
     {
         'saghen/blink.cmp',
-        event = 'VimEnter',
+        event = { 'InsertEnter', 'CmdlineEnter' },
         version = '1.*',
         --- @module 'blink.cmp'
         --- @type blink.cmp.Config
@@ -246,9 +247,8 @@ return {
     -- Markdown
     {
         'MeanderingProgrammer/render-markdown.nvim',
-        dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.nvim' }, -- if you use the mini.nvim suite
-        -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.icons' }, -- if you use standalone mini plugins
-        -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
+        ft = 'markdown',
+        dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.nvim' },
         ---@module 'render-markdown'
         ---@type render.md.UserConfig
         opts = {},

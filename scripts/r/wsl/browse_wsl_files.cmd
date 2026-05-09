@@ -1,1 +1,0 @@
-start \\wsl.localhost

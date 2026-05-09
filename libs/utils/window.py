@@ -74,7 +74,7 @@ def _get_windows_linux() -> List[WindowItem]:
         return []
 
 
-def _get_windows_win(sort_by_title: bool = True) -> List[WindowItem]:
+def _get_windows_win() -> List[WindowItem]:
     """
     Get all top-level windows.
     """
@@ -115,9 +115,6 @@ def _get_windows_win(sort_by_title: bool = True) -> List[WindowItem]:
                 windows.append(WindowItem(id=hwnd, title=title))
 
         hwnd = user32.GetWindow(hwnd, 2)
-
-    if sort_by_title:
-        windows.sort(key=lambda x: x.title.lower())
 
     return windows
 
@@ -358,12 +355,12 @@ def _get_windows_darwin() -> List[WindowItem]:
 
 
 def get_windows(
-    sort_by_title: bool = True, script_status: Optional[Dict[str, str]] = None
+    script_status: Optional[Dict[str, str]] = None,
 ) -> List[WindowItem]:
     if sys.platform == "linux":
         windows = _get_windows_linux()
     elif sys.platform == "win32":
-        windows = _get_windows_win(sort_by_title=sort_by_title)
+        windows = _get_windows_win()
     elif sys.platform == "darwin":
         windows = _get_windows_darwin()
     elif is_in_tmux():
@@ -375,7 +372,6 @@ def get_windows(
         windows.sort(
             key=lambda x: (
                 _WINDOW_STATUS_PRIORITY.get(x.get_status(script_status), 3),
-                x.title.lower() if sort_by_title else 0,
             )
         )
 
