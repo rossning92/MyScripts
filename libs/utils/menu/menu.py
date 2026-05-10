@@ -27,7 +27,7 @@ from typing import (
 from _shutil import get_hotkey_abbr
 
 from utils.clamp import clamp
-from utils.clip import get_clip, set_clip
+from utils.clip import get_clip, set_clip, set_clip_osc52
 from utils.editor import edit_text
 from utils.jsonutil import load_json, save_json
 from utils.slugify import slugify
@@ -628,7 +628,8 @@ class Menu(Generic[T]):
             self.set_input(last_input, save_search_history=False)
 
     def yank(self):
-        set_clip(self.__get_selected_lines())
+        text = self.__get_selected_lines()
+        set_clip_osc52(text)
         self.set_message("copied")
 
     def paste(self) -> bool:

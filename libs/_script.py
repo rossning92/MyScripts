@@ -756,6 +756,7 @@ class Script:
         self,
         args: List[str] = [],
         new_window: Optional[bool] = None,
+        minimized: Optional[bool] = None,
         single_instance=None,
         restart_instance=False,
         close_on_exit=None,
@@ -785,6 +786,7 @@ class Script:
 
         assert isinstance(self.cfg["newWindow"], bool)
         new_window = self.cfg["newWindow"] if new_window is None else new_window
+        minimized = self.cfg["minimized"] if minimized is None else minimized
 
         background = background or self.cfg["background"]
 
@@ -1304,7 +1306,7 @@ class Script:
             if (
                 command_wrapper
                 and not (background or out_to_file)
-                and not self.cfg["minimized"]
+                and not minimized
             ):
                 # Add command wrapper to pause on exit
                 env["CMDW_CLOSE_ON_EXIT"] = "1" if close_on_exit else "0"
@@ -1392,7 +1394,18 @@ class Script:
                         )
 
                         # Open in specified terminal (e.g. Windows Terminal)
-                        if self.__get_terminal() in [
+                        if minimized:
+                            popen_extra_args["creationflags"] = (
+                                subprocess.CREATE_NEW_CONSOLE
+                            )
+                            startupinfo = subprocess.STARTUPINFO()
+                            startupinfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
+                            SW_MINIMIZE = 6
+                            startupinfo.wShowWindow = SW_MINIMIZE
+                            popen_extra_args["startupinfo"] = startupinfo
+                            no_wait = True
+                            open_in_terminal = True
+                        elif self.__get_terminal() in [
                             "wt",
                             "wsl",
                             "windowsTerminal",
@@ -1450,10 +1463,10 @@ class Script:
                             popen_extra_args["creationflags"] = (
                                 subprocess.CREATE_NEW_CONSOLE
                             )
-                            if self.cfg["minimized"] or self.cfg["maximized"]:
+                            if minimized or self.cfg["maximized"]:
                                 startupinfo = subprocess.STARTUPINFO()
                                 startupinfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
-                                if self.cfg["minimized"]:
+                                if minimized:
                                     SW_MINIMIZE = 6
                                     startupinfo.wShowWindow = SW_MINIMIZE
                                 else:
@@ -1740,6 +1753,7 @@ def start_script(
     command_wrapper: Optional[bool] = None,
     config_override=None,
     console_title=None,
+    minimized: Optional[bool] = None,
     new_window=None,
     restart_instance: Optional[bool] = True,
     single_instance=None,
@@ -1794,6 +1808,7 @@ def start_script(
         args=args,
         cd=cd,
         command_wrapper=command_wrapper,
+        minimized=minimized,
         new_window=new_window,
         restart_instance=restart_instance,
         single_instance=single_instance,

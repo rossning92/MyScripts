@@ -1,0 +1,32 @@
+# Alucard - official Dracula light variant
+[colors.bright]
+black = "#6C664B"
+blue = "#7862D0"
+cyan = "#047FB4"
+green = "#198D0C"
+magenta = "#BF185A"
+red = "#D74C3D"
+white = "#2C2B31"
+yellow = "#9E841A"
+
+[colors.normal]
+black = "#FFFBEB"
+blue = "#644AC9"
+cyan = "#036A96"
+green = "#14710A"
+magenta = "#A3144D"
+red = "#CB3A2A"
+white = "#1F1F1F"
+yellow = "#846E15"
+
+[colors.primary]
+background = "#FFFBEB"
+foreground = "#1F1F1F"
+
+[colors.search.focused_match]
+background = "#ff9632"
+foreground = "#000000"
+
+[colors.search.matches]
+background = "#ffff00"
+foreground = "#000000"

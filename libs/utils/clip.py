@@ -1,4 +1,6 @@
+import base64
 import ctypes
+import os
 import shutil
 import subprocess
 import sys
@@ -351,3 +353,18 @@ def set_clip(text: str):
         p.communicate(input=text.encode("utf-8"))
     elif sys.platform == "win32":
         _set_clip_win(text)
+
+
+def set_clip_osc52(text: str):
+    encoded = base64.b64encode(text.encode("utf-8")).decode("ascii")
+    osc = f"\x1b]52;c;{encoded}\x07"
+    if os.environ.get("TMUX"):
+        # -w makes tmux forward to the outer terminal via OSC 52, bypassing allow-passthrough
+        subprocess.run(
+            ["tmux", "load-buffer", "-w", "-"],
+            input=text.encode("utf-8"),
+            check=True,
+        )
+    else:
+        sys.stdout.write(osc)
+        sys.stdout.flush()

@@ -4,33 +4,60 @@ import sys
 from pathlib import Path
 from typing import Optional, Tuple
 
-from _shutil import file_is_old
-
-
 def is_alacritty_installed():
     return shutil.which("alacritty")
 
 
 # https://github.com/alacritty/alacritty/blob/master/alacritty.toml
+def _get_settings_dir() -> Path:
+    return Path(__file__).resolve().parent.parent.parent.parent / "settings" / "alacritty"
+
+
 def setup_alacritty():
     if not is_alacritty_installed():
         raise FileNotFoundError("Alacritty is not installed")
 
-    src_config = (
-        Path(__file__).resolve().parent.parent.parent.parent
-        / "settings"
-        / "alacritty"
-        / "alacritty.toml"
-    ).resolve()
+    src_config = (_get_settings_dir() / "alacritty.toml").resolve()
 
+    config_dir = _get_alacritty_config_dir()
+    config_dir.mkdir(parents=True, exist_ok=True)
+    dest_config = config_dir / "alacritty.toml"
+
+    if not (dest_config.is_symlink() and dest_config.resolve() == src_config):
+        if dest_config.is_symlink() or dest_config.exists():
+            dest_config.unlink()
+        os.symlink(src_config, dest_config)
+
+    current_theme = config_dir / "current-theme.toml"
+    if not current_theme.is_symlink() and not current_theme.exists():
+        os.symlink(_get_themes_dir() / "dracula.toml", current_theme)
+
+
+def _get_alacritty_config_dir() -> Path:
     if sys.platform == "win32":
-        dest_config = os.path.expandvars(r"%APPDATA%\alacritty\alacritty.toml")
+        return Path(os.path.expandvars(r"%APPDATA%\alacritty"))
     else:
-        dest_config = os.path.expanduser("~/.config/alacritty/alacritty.toml")
-    os.makedirs(os.path.dirname(dest_config), exist_ok=True)
+        return Path(os.path.expanduser("~/.config/alacritty"))
 
-    if file_is_old(src_config, dest_config):
-        shutil.copy(src_config, dest_config)
+
+def _get_themes_dir() -> Path:
+    return _get_settings_dir() / "themes"
+
+
+def toggle_alacritty_theme():
+    themes_dir = _get_themes_dir()
+    current = _get_alacritty_config_dir() / "current-theme.toml"
+    dark = themes_dir / "dracula.toml"
+    light = themes_dir / "alucard.toml"
+
+    if current.is_symlink() and current.resolve() == dark.resolve():
+        target = light
+    else:
+        target = dark
+
+    current.unlink(missing_ok=True)
+    os.symlink(target, current)
+    return target.stem
 
 
 def wrap_args_alacritty(

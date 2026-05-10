@@ -15,7 +15,7 @@ from _script import (
     get_default_script_config,
 )
 from _shutil import quote_arg
-from utils.clip import set_clip
+from utils.clip import set_clip_osc52
 from utils.editor import is_vscode_available, open_in_vscode
 from utils.jsonutil import save_json
 from utils.menu import Menu
@@ -198,7 +198,7 @@ def copy_script_path_to_clipboard(
     elif ext == ".md" or ext == ".txt":
         with open(script_path, "r", encoding="utf-8") as f:
             set_clip(f.read())
-        logging.info("Content is copied to clipboard.")
+        logging.info("copied")
 
     else:
         # Convert to relative path
@@ -227,7 +227,7 @@ def copy_script_path_to_clipboard(
         else:
             raise Exception(f'Invalid format specified "{format}".')
 
-        set_clip(content)
+        set_clip_osc52(content)
         return content
 
 

@@ -14,6 +14,7 @@ import time
 import traceback
 from typing import Any, Dict, List, Optional
 
+
 MYSCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(MYSCRIPT_ROOT, "libs"))
 sys.path.append(os.path.join(MYSCRIPT_ROOT, "bin"))
@@ -28,15 +29,15 @@ from _ext import (
     rename_script,
 )
 from _script import (
-    Script,
     get_default_script_config,
     get_script_variables,
     is_instance_running,
+    Script,
     setup_env_var,
     try_reload_scripts_autorun,
     update_variables,
 )
-from _scriptmanager import ScriptManager, execute_script
+from _scriptmanager import execute_script, ScriptManager
 from _scriptserver import ScriptServer
 from _shutil import (
     append_to_path_global,
@@ -45,7 +46,7 @@ from _shutil import (
     run_at_startup,
     setup_nodejs,
 )
-from utils.clip import set_clip
+from utils.clip import set_clip_osc52
 from utils.fileutils import read_last_line
 from utils.jsonutil import load_json, save_json
 from utils.logger import setup_logger
@@ -65,6 +66,7 @@ from utils.script.path import (
 from utils.term import set_terminal_title
 from utils.timeutil import time_diff_str
 from utils.tmux import has_tmux_session, is_in_tmux
+
 
 _REFRESH_INTERVAL_SECS = 60
 
@@ -430,9 +432,7 @@ class _MyScriptMenu(Menu[Script]):
                 format="include" if include_derivative else "cmdline",
                 with_variables=include_derivative,
             )
-            self.set_message(
-                f"copied to clipboard: {content}" if content else "copied to clipboard."
-            )
+            self.set_message(f"copied: {content}" if content else "copied")
             self.__last_copy_time = now
 
     def _copy_to(self):
@@ -445,7 +445,7 @@ class _MyScriptMenu(Menu[Script]):
         script = self.get_selected_script()
         if script:
             script_path = script.get_script_path()
-            set_clip(script_path)
+            set_clip_osc52(script_path)
             self.set_message(f"copied: {script_path}")
 
     def _new_script_or_duplicate_script(
