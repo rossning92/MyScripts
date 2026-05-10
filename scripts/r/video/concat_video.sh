@@ -11,9 +11,13 @@ OUTPUT="output.mp4"
 # Create a temporary file list
 FILELIST=$(mktemp)
 for f in "$@"; do
-    # Use absolute path to avoid issues with concat demuxer
+    # Use absolute path and escape special characters for the concat demuxer
     ABS_PATH=$(realpath "$f")
-    echo "file '$ABS_PATH'" >> "$FILELIST"
+    ESCAPED_PATH="${ABS_PATH//\\/\\\\}"
+    ESCAPED_PATH="${ESCAPED_PATH//\'/\\\'}"
+    echo "file '$ESCAPED_PATH'" >> "$FILELIST"
+    echo "inpoint 0" >> "$FILELIST"
+    echo "outpoint 20" >> "$FILELIST"
 done
 
 echo "Concatenating files into $OUTPUT..."
