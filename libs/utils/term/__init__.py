@@ -52,6 +52,18 @@ def set_terminal_title(title):
         sys.stdout.flush()
 
 
+def hide_terminal_from_taskbar():
+    if sys.platform == "win32":
+        GWL_EXSTYLE = -20
+        WS_EX_TOOLWINDOW = 0x00000080
+        WS_EX_APPWINDOW = 0x00040000
+        hwnd = ctypes.windll.kernel32.GetConsoleWindow()
+        user32 = ctypes.windll.user32
+        style = user32.GetWindowLongW(hwnd, GWL_EXSTYLE)
+        style = (style | WS_EX_TOOLWINDOW) & ~WS_EX_APPWINDOW
+        user32.SetWindowLongW(hwnd, GWL_EXSTYLE, style)
+
+
 def enable_windows_vt():
     """Enable Windows virtual terminal processing for console input and output."""
     assert sys.platform == "win32"

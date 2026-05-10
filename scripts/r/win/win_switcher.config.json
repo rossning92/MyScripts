@@ -1,6 +1,7 @@
 {
   "globalHotkey": "win+tab",
   "hotkey": "ctrl+w",
-  "title": "WinSwitcher",
-  "restartInstance": false
+  "restartInstance": false,
+  "terminal": "",
+  "title": "win_switcher"
 }

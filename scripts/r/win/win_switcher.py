@@ -1,8 +1,10 @@
 import time
+from pathlib import Path
 from typing import Dict, Optional
 
 from utils.menu import Menu
 from utils.notify import get_notifications
+from utils.term import hide_terminal_from_taskbar, set_terminal_title
 from utils.window import (
     WindowItem,
     WindowStatus,
@@ -61,7 +63,7 @@ class WinSwitcherMenu(Menu[WindowItem]):
         if message:
             self.set_message(message)
         else:
-            self.set_message(f"{time.monotonic():.1f} refreshed")
+            self.set_message(f"{time.strftime('%H:%M:%S')}: refreshed")
         self.refresh()
 
     def __activate_window(self, win_id):
@@ -152,4 +154,6 @@ class WinSwitcherMenu(Menu[WindowItem]):
 
 
 if __name__ == "__main__":
+    set_terminal_title(Path(__file__).stem)
+    hide_terminal_from_taskbar()
     WinSwitcherMenu().exec()

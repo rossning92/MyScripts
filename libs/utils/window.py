@@ -7,7 +7,7 @@ import shutil
 import subprocess
 import sys
 import time
-from typing import cast, Dict, List, Literal, Optional, Tuple
+from typing import Dict, List, Literal, Optional, Tuple, cast
 
 from .tmux import is_in_tmux
 
@@ -66,7 +66,7 @@ def _get_windows_linux() -> List[WindowItem]:
             if len(parts) >= 3:
                 window_id = parts[0]
                 title = parts[3] if len(parts) == 4 else ""
-                if title.startswith("WinSwitcher"):
+                if title.startswith("win_switcher"):
                     continue
                 windows.append(WindowItem(id=window_id, title=title))
         return windows
@@ -111,7 +111,7 @@ def _get_windows_win() -> List[WindowItem]:
             buff = ctypes.create_unicode_buffer(title_length + 1)
             user32.GetWindowTextW(hwnd, buff, title_length + 1)
             title = buff.value
-            if not title.startswith("WinSwitcher"):
+            if not title.startswith("win_switcher"):
                 windows.append(WindowItem(id=hwnd, title=title))
 
         hwnd = user32.GetWindow(hwnd, 2)
@@ -138,7 +138,7 @@ def _get_windows_tmux() -> List[WindowItem]:
                 parts = line.split("\t", 2)
                 assert len(parts) == 3
                 target, name, pane_title = parts
-                if name == "WinSwitcher":
+                if name == "win_switcher":
                     continue
 
                 title = f"{name} - {pane_title}" if pane_title else name
@@ -310,7 +310,7 @@ class _DarwinWindowAPI:
     def get_windows(self) -> List[WindowItem]:
         windows: List[WindowItem] = []
         for _, _, _, _, title, pid, win_index in self._iter_windows():
-            if not title.startswith("WinSwitcher"):
+            if not title.startswith("win_switcher"):
                 windows.append(WindowItem(id=f"darwin:{pid}:{win_index}", title=title))
         return windows
 
@@ -370,9 +370,7 @@ def get_windows(
 
     if script_status:
         windows.sort(
-            key=lambda x: (
-                _WINDOW_STATUS_PRIORITY.get(x.get_status(script_status), 3),
-            )
+            key=lambda x: (_WINDOW_STATUS_PRIORITY.get(x.get_status(script_status), 3),)
         )
 
     return windows
