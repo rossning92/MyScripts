@@ -421,7 +421,7 @@ def _install_pip_packages(pkg: str, python_exec: str) -> None:
         stderr=subprocess.DEVNULL,
     )
     if ret != 0:
-        print(f"{pkg} is not found, installing...")
+        logging.info(f"{pkg} is not found, installing...")
         subprocess.check_call([python_exec, "-m", "pip", "install", pkg])
 
 
@@ -1023,7 +1023,7 @@ class Script:
                     ps_path,
                 ] + arg_list
             else:
-                print("ERROR: OS does not support script: %s" % script_path)
+                logging.error("OS does not support script: %s" % script_path)
                 return False
 
         elif ext == ".ahk":
@@ -1068,7 +1068,7 @@ class Script:
                 # "call" must be used if there are spaces in batch file name
                 arg_list = ["cmd.exe", "/c", "call", batch_file] + arg_list
             else:
-                print("ERROR: OS does not support script: %s" % script_path)
+                logging.error("OS does not support script: %s" % script_path)
                 return False
 
         elif ext == ".js":
@@ -1257,7 +1257,7 @@ class Script:
             return True
 
         else:
-            print("ERROR: not supported script extension: %s" % ext)
+            logging.error("not supported script extension: %s" % ext)
 
         # venv
         if self.cfg["venv.name"]:
@@ -1274,7 +1274,7 @@ class Script:
                 require_package(pkg, wsl=self.cfg["wsl"], env=env)
 
             if "node" in packages:
-                print("node package is required.")
+                logging.info("node package is required")
                 setup_nodejs(install=False)
 
         # Run commands

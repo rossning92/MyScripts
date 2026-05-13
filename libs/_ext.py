@@ -192,12 +192,12 @@ def copy_script_path_to_clipboard(
 
     if script_path.endswith(".user.js"):
         url = script.get_userscript_url()
-        set_clip(url)
+        set_clip_osc52(url)
         logging.info("Copied url: %s" % url)
 
     elif ext == ".md" or ext == ".txt":
         with open(script_path, "r", encoding="utf-8") as f:
-            set_clip(f.read())
+            set_clip_osc52(f.read())
         logging.info("copied")
 
     else:

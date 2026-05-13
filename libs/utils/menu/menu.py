@@ -629,7 +629,12 @@ class Menu(Generic[T]):
 
     def yank(self):
         text = self.__get_selected_lines()
-        set_clip_osc52(text)
+        if sys.platform == "win32":
+            # On Windows, OSC 52 doesn't reach the terminal while PDCurses
+            # is active. Temporarily exit curses so the sequence goes through.
+            Menu.run_raw(lambda: set_clip_osc52(text))
+        else:
+            set_clip_osc52(text)
         self.set_message("copied")
 
     def paste(self) -> bool:

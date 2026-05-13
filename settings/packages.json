@@ -406,6 +406,11 @@
       "packages": ["IrfanSkiljan.IrfanView"]
     }
   },
+  "jq": {
+    "winget": {
+      "packages": ["jqlang.jq"]
+    }
+  },
   "jre": {
     "apt": {
       "packages": ["openjdk-17-jre"]
