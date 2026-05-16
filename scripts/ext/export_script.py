@@ -1,4 +1,5 @@
 import argparse
+import logging
 import os
 import re
 import shutil
@@ -105,7 +106,7 @@ def _export_script(script_path, out_dir, out=None, create_executable=False):
         out_file = out
     else:
         out_file = "%s/%s" % (out_dir, os.path.basename(script_path))
-    print("Render: %s" % script_path)
+    logging.debug("Render: %s" % script_path)
     with open(out_file, "w", encoding="utf-8", newline="\n") as f:
         f.write(content)
 

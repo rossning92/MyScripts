@@ -63,7 +63,7 @@ from utils.script.path import (
     get_script_config_file_path,
     get_variable_edit_history_file,
 )
-from utils.term import set_terminal_title
+from utils.term import hide_terminal_from_taskbar, set_terminal_title
 from utils.timeutil import time_diff_str
 from utils.tmux import has_tmux_session, is_in_tmux
 
@@ -741,6 +741,8 @@ def _main():
                 sys.executable,
                 *(x for x in sys.argv if x not in ("-t", "--tmux")),
             )
+
+    hide_terminal_from_taskbar()
 
     run_at_startup(
         name="myscripts",

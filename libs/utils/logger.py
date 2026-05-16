@@ -8,18 +8,13 @@ def setup_logger(
     log_to_stderr: bool = True,
     log_file: Optional[str] = None,
 ):
-    format = (
-        "%(asctime)s.%(msecs)03d %(levelname).1s "
-        # "%(filename)-10s: "
-        # "%(funcName)-10s: "
-        "%(message)s"
-    )
+    format = "%(asctime)s.%(msecs)03d %(levelname).1s %(message)s"
     datefmt = "%H:%M:%S"
     if log_to_stderr:
         logging.basicConfig(
             format=format,
             datefmt=datefmt,
-            level=logging.DEBUG,
+            level=level,
         )
     elif log_file:
         logging.basicConfig(
@@ -27,7 +22,7 @@ def setup_logger(
             filemode="w",
             format=format,
             datefmt=datefmt,
-            level=logging.DEBUG,
+            level=level,
         )
 
 

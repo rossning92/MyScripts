@@ -22,7 +22,10 @@ StartScript(scriptTitle, scriptPath, restartInstance)
     titlePattern := "^" . scriptTitle . "|" . scriptTitle . "$"
     if WinExist(titlePattern) and not restartInstance
     {
-        WinActivate
+        if WinActive(titlePattern)
+            WinActivateBottom, %titlePattern%
+        else
+            WinActivate
         return
     }
 

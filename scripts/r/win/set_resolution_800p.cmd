@@ -1,2 +1,2 @@
 @echo off
-run_script r/win/set_resolution.win.py 1280 800
+pwsh -NoProfile -File "%~dp0set_resolution.ps1" -Width 1280 -Height 800
