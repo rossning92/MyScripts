@@ -1,17 +1,24 @@
 from inspect import signature
 from threading import Event, Thread
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 from ..spinner import Spinner
 from .menu import Menu
 
 
 class AsyncTaskMenu(Menu):
-    def __init__(self, target: Callable, prompt: str = "", **kwargs):
+    def __init__(
+        self,
+        target: Callable,
+        prompt: str = "",
+        status: Optional[Callable[[], str]] = None,
+        **kwargs,
+    ):
         kwargs.setdefault("timeout_sec", 0.1)
         super().__init__(prompt=prompt, **kwargs)
 
         self.__prompt = prompt
+        self.__status = status
         self.__stop_event = Event()
         self.__result = None
         self.__exception = None
@@ -47,3 +54,7 @@ class AsyncTaskMenu(Menu):
 
     def get_result(self) -> Any:
         return self.__result
+
+    def get_status_text(self) -> str:
+        status = self.__status() if self.__status else ""
+        return status + "\t" + super().get_status_text()

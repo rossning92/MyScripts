@@ -19,7 +19,7 @@ fi
 sudo tee /usr/local/bin/x11vnc_on_connect.sh <<-'EOF'
 	#!/bin/sh
 	export DISPLAY=:0
-	xrandr --query | awk '/ connected/ {print $1; exit}' | xargs -r -I{} xrandr --output {} --mode 1920x1080
+	xrandr --query | awk '/ connected/ {print $1; exit}' | xargs -r -I{} xrandr --output {} --mode 1280x800
 EOF
 sudo chmod +x /usr/local/bin/x11vnc_on_connect.sh
 
@@ -36,7 +36,7 @@ sudo tee /etc/systemd/system/x11vnc.service <<-EOF
 	[Service]
 	User=$USER
 	ExecStart=
-	ExecStart=/usr/bin/x11vnc -many -no6 -noxdamage -rfbport 5900 -rfbauth $HOME/.vnc/passwd -auth $HOME/.Xauthority -display :0 -accept /usr/local/bin/x11vnc_on_connect.sh -gone /usr/local/bin/x11vnc_on_disconnect.sh
+	ExecStart=/usr/bin/x11vnc -many -listen localhost -allow 127.0.0.1,10.77.0. -no6 -noxdamage -rfbport 5900 -rfbauth $HOME/.vnc/passwd -auth $HOME/.Xauthority -display :0 -accept /usr/local/bin/x11vnc_on_connect.sh -gone /usr/local/bin/x11vnc_on_disconnect.sh
 	Restart=on-failure
 	RestartSec=3
 

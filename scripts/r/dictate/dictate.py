@@ -13,6 +13,7 @@ import os
 import queue
 import signal
 import shutil
+import subprocess
 import sys
 import threading
 import urllib.request
@@ -227,7 +228,22 @@ def dictate_loop(
 
         text = transcribe(model, audio)
         if text:
-            typer.type(text)
+            # Use delayed xdotool input to prevent incorrect X11 Unicode characters.
+            if sys.platform == "linux" and not text.isascii():
+                subprocess.run(
+                    [
+                        "xdotool",
+                        "type",
+                        "--clearmodifiers",
+                        "--file",
+                        "-",
+                    ],
+                    input=text,
+                    text=True,
+                    check=True,
+                )
+            else:
+                typer.type(text)
             logger.info("Transcribed: %s", text)
         else:
             logger.info("No speech recognized.")

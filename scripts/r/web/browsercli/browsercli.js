@@ -369,6 +369,17 @@ addTargetOptions(program.command("screenshot"))
   });
 
 program
+  .command("pdf")
+  .description("Save the current page as a PDF")
+  .option("-o, --output <path>", "Save to this path instead of a temporary file")
+  .action(async (options) => {
+    const savedPath = await sendCommand("pdf", {
+      output: options.output ? path.resolve(options.output) : undefined,
+    });
+    console.log(savedPath);
+  });
+
+program
   .command("screencast")
   .description("Open a screencast viewer for the page")
   .action(async () => {

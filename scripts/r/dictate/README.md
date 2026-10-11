@@ -30,5 +30,5 @@ while idle and never takes focus from your current application.
 The first use of a model downloads its quantized Q8 GGUF published by Handy to
 the operating system's user cache. NeMo and PyTorch are not used.
 
-Linux needs PortAudio and an X11 session; macOS needs Accessibility and
-Microphone permissions. Windows may also request Microphone permission.
+Linux needs PortAudio, `xdotool`, and an X11 session; macOS needs Accessibility
+and Microphone permissions. Windows may also request Microphone permission.

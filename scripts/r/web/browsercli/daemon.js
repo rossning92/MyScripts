@@ -35,6 +35,7 @@ import { upload as uploadCdp } from "./extension/shared/upload.js";
 import { getMarkdownHtml, htmlToMarkdown } from "./get-markdown.js";
 import { snapshot } from "./snapshot.js";
 import { saveScreenshotData, screenshot } from "./screenshot.js";
+import { printPdf } from "./pdf.js";
 import { screencast } from "./screencast.js";
 import { extensionBridge } from "./extension-bridge.js";
 import { getExtensionSourceVersion } from "./extension-source.js";
@@ -252,6 +253,13 @@ const commands = {
       return await saveScreenshotData(data, output);
     }
     return await screenshot(target, output);
+  },
+
+  async pdf({ output } = {}) {
+    if (activeBackend() === "extension") {
+      throw new Error("pdf is only available for the managed browser backend");
+    }
+    return await printPdf(output);
   },
 
   async screencast() {

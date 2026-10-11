@@ -1,5 +1,5 @@
 {
-  "globalHotkey": "win+alt+.",
+  "globalHotkey": "win+alt+u",
   "tmuxHotkey": "u",
   "variableNames": "TODO_DATA_FILE"
 }

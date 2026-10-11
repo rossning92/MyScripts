@@ -805,6 +805,7 @@ class Script:
         command_wrapper: Optional[bool] = None,
         background=False,
         out_to_file: Optional[str] = None,
+        redirect_output_to_log=False,
         run_script_local=False,
         run_in_tmux=False,
     ) -> bool:
@@ -1392,6 +1393,7 @@ class Script:
             no_wait = False
             open_in_terminal = False
             popen_extra_args: Dict[str, Any] = {}
+            foreground_log_fd = None
 
             if command_wrapper is None:
                 command_wrapper = self.cfg["commandWrapper"]
@@ -1746,21 +1748,30 @@ class Script:
                     return return_code == 0
 
             else:
+                if redirect_output_to_log and not (background or out_to_file):
+                    foreground_log_fd = open(self.get_script_log_file(), "w")
+                    popen_extra_args["stdin"] = subprocess.DEVNULL
+                    popen_extra_args["stdout"] = foreground_log_fd
+                    popen_extra_args["stderr"] = foreground_log_fd
                 logging.debug("cmdline: %s" % arg_list)
                 logging.debug("popen_extra_args: %s" % popen_extra_args)
                 logging.debug("env = %s" % env)
-                self.ps = subprocess.Popen(
-                    args=arg_list,
-                    env={**os.environ, **env},
-                    cwd=cwd,
-                    shell=shell,
-                    **popen_extra_args,
-                )
+                try:
+                    self.ps = subprocess.Popen(
+                        args=arg_list,
+                        env={**os.environ, **env},
+                        cwd=cwd,
+                        shell=shell,
+                        **popen_extra_args,
+                    )
 
-                success = True
-                if not no_wait:
-                    with IgnoreSigInt():
-                        success = self.ps.wait() == 0
+                    success = True
+                    if not no_wait:
+                        with IgnoreSigInt():
+                            success = self.ps.wait() == 0
+                finally:
+                    if foreground_log_fd is not None:
+                        foreground_log_fd.close()
 
                 if background or out_to_file:
                     if BG_PROCESS_OUTPUT_TYPE == BackgroundProcessOutputType.LOG_PIPE:
@@ -2255,7 +2266,10 @@ def execute_script_autorun(script: Script):
     assert script.cfg["autoRun"] or script.cfg["runAtStartup"]
     try:
         logging.debug("autorun: %s" % script.name)
-        script.execute(command_wrapper=False)
+        script.execute(
+            command_wrapper=False,
+            redirect_output_to_log=not script.cfg["newWindow"],
+        )
     except Exception as ex:
         logging.warning(f"Failed to autorun script: {script.script_path}")
         logging.exception(ex)

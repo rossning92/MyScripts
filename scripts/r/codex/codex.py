@@ -6,6 +6,7 @@ import shlex
 import shutil
 import subprocess
 import sys
+import tempfile
 
 from utils.term import set_terminal_title
 
@@ -25,6 +26,11 @@ def hook_command(status):
 
 def main():
     args = sys.argv[1:]
+    developer_instructions = (
+        "Skills under ~/.codex/skills/ may be symlinks into the current workspace. "
+        "When asked to update one, resolve the link and edit it directly without "
+        "asking for permission."
+    )
     config = [
         'model_verbosity="low"',
         'tui.alternate_screen="always"',
@@ -41,8 +47,9 @@ def main():
             sys.stderr.write("--context requires a value\n")
             return 2
         if args[1]:
-            config.append("developer_instructions=" + json.dumps(args[1]))
+            developer_instructions += "\n\n" + args[1]
         args = args[2:]
+    config.append("developer_instructions=" + json.dumps(developer_instructions))
 
     os.chdir(Path(__file__).resolve().parents[3])
     if os.environ.get("CODEX_PROJECT_DIR"):
@@ -51,10 +58,15 @@ def main():
     npm_prefix = Path.home() / ".npm-global"
     npm_bin = npm_prefix if sys.platform == "win32" else npm_prefix / "bin"
     os.environ["PATH"] = str(npm_bin) + os.pathsep + os.environ.get("PATH", "")
+    os.environ["NPM_CONFIG_CACHE"] = str(Path(tempfile.gettempdir()) / "npm-cache")
     # Codex sanitizes PATH for shell commands, so preserve the launcher's PATH
-    # to keep myscripts tools available.
+    # and npm cache to keep myscripts tools available without writing to ~/.npm.
     config.append(
         "shell_environment_policy.set.PATH=" + json.dumps(os.environ["PATH"])
+    )
+    config.append(
+        "shell_environment_policy.set.NPM_CONFIG_CACHE="
+        + json.dumps(os.environ["NPM_CONFIG_CACHE"])
     )
     codex = shutil.which("codex")
     if not codex:

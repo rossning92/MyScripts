@@ -18,6 +18,7 @@ from utils.fileutils import get_display_path, human_readable_size
 from utils.platform import is_termux
 from utils.shutil import shell_open
 
+from .asynctaskmenu import AsyncTaskMenu
 from .confirmmenu import confirm
 from .inputmenu import InputMenu
 from .menu import Menu
@@ -480,15 +481,14 @@ class FileMenu(Menu[_File]):
             dest_dir = filemgr.select_directory()
             if dest_dir is not None:
                 self.__last_copy_to_path = dest_dir
+                copy_jobs: List[tuple[str, str]] = []
                 for src in files:
                     dest = os.path.join(dest_dir, os.path.basename(src))
                     if os.path.isdir(src):
-                        shutil.copytree(
-                            src,
-                            dest,
-                            dirs_exist_ok=True,
-                        )
-                        if not copy:
+                        if copy:
+                            copy_jobs.append((src, dest))
+                        else:
+                            shutil.copytree(src, dest, dirs_exist_ok=True)
                             shutil.rmtree(src)
                     else:
                         if os.path.exists(dest):
@@ -505,9 +505,54 @@ class FileMenu(Menu[_File]):
 
                         if should_copy_or_move:
                             if copy:
-                                shutil.copy(src, dest)
+                                copy_jobs.append((src, dest))
                             else:
                                 shutil.move(src, dest)
+
+                if copy_jobs:
+                    copy_stats = {"copied": 0, "total": None}
+
+                    def copy_files(stop_event):
+                        copy_stats["total"] = sum(
+                            sum(len(names) for _root, _dirs, names in os.walk(src))
+                            if os.path.isdir(src)
+                            else 1
+                            for src, _dest in copy_jobs
+                        )
+
+                        def copy_file(src, dest):
+                            if stop_event.is_set():
+                                raise InterruptedError()
+                            result = shutil.copy2(src, dest)
+                            copy_stats["copied"] += 1
+                            return result
+
+                        for src, dest in copy_jobs:
+                            if stop_event.is_set():
+                                break
+                            if os.path.isdir(src):
+                                shutil.copytree(
+                                    src,
+                                    dest,
+                                    dirs_exist_ok=True,
+                                    copy_function=copy_file,
+                                )
+                            else:
+                                copy_file(src, dest)
+
+                    progress = AsyncTaskMenu(
+                        copy_files,
+                        prompt=filemgr._submenu_prompt("copying (Esc to cancel)"),
+                        status=lambda: (
+                            "Counting files..."
+                            if copy_stats["total"] is None
+                            else f'{copy_stats["copied"]} / {copy_stats["total"]} files'
+                        ),
+                    )
+                    progress.exec()
+                    if progress.is_cancelled:
+                        self.set_message("Copy cancelled; partial files remain")
+                        return
 
                 self.goto_directory(dest_dir, selected_file=os.path.basename(files[0]))
                 self.set_multi_select(False)
