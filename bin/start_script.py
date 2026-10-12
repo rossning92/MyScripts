@@ -33,7 +33,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--minimized", action="store_true")
     parser.add_argument("--background", action="store_true")
-    parser.add_argument("--run-in-tmux", action="store_true")
+    parser.add_argument("-t", "--run-in-tmux", action="store_true")
     parser.add_argument("-v", "--verbose", action="store_true")
     parser.add_argument("args", nargs=argparse.REMAINDER)
     args = parser.parse_args()

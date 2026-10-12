@@ -49,7 +49,7 @@ def _parse_args():
     parser.add_argument("--command-wrapper", action="store_true", default=False)
     parser.add_argument("--tee", action="store_true", default=False)
     parser.add_argument("--run-script-local", action="store_true", default=False)
-    parser.add_argument("--run-in-tmux", action="store_true", default=False)
+    parser.add_argument("-t", "--run-in-tmux", action="store_true", default=False)
     parser.add_argument("--log", action="store_true", default=False)
     parser.add_argument("file", nargs="?")
     parser.add_argument("script_args", nargs=argparse.REMAINDER)

@@ -13,6 +13,7 @@ Provider = Literal[
     "openrouter",
 ]
 ReasoningEffort = Literal["low", "medium", "high"]
+ImageResolution = Literal["1K", "2K"]
 ApiType = Literal[
     "anthropic_messages",
     "gemini_generate_content",
@@ -32,6 +33,7 @@ class Model:
     base_url: Optional[str] = None
     api_key: Optional[str] = None
     reasoning_effort: Optional[ReasoningEffort] = None
+    image_resolution: Optional[ImageResolution] = None
     supports_image_input: bool = True
 
     @property
@@ -39,6 +41,8 @@ class Model:
         model_id = f"{self.provider}:{self.model}"
         if self.reasoning_effort:
             model_id += f"-{self.reasoning_effort}"
+        if self.image_resolution:
+            model_id += f"-{self.image_resolution.lower()}"
         return model_id
 
 
@@ -163,6 +167,14 @@ MODELS: List[Model] = [
         api_type="openai_chat_completions",
         base_url="https://openrouter.ai/api/v1",
         api_key=os.environ.get("OPENROUTER_API_KEY"),
+    ),
+    Model(
+        "openrouter",
+        "x-ai/grok-imagine-image-quality",
+        api_type="openai_chat_completions",
+        base_url="https://openrouter.ai/api/v1",
+        api_key=os.environ.get("OPENROUTER_API_KEY"),
+        image_resolution="2K",
     ),
     Model(
         "openrouter",

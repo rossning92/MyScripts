@@ -28,6 +28,20 @@ toggle_scale_mode(2)
 <Left> { goto_file_relative(-1); }
 <Right> { goto_file_relative(1); }
 
+# Pan with Shift+Arrow; Left/Right alone navigate images.
+<Shift><Left> { shift_x(50); }
+<Shift><Right> { shift_x(-50); }
+<Shift><Up> { shift_y(50); }
+<Shift><Down> { shift_y(-50); }
+
+# Zoom with the mouse wheel instead of changing images.
+<Mouse-Scroll-1> { set_scale_level_relative(1.1); }
+<Mouse-Scroll-2> { set_scale_level_relative(0.9); }
+
+# Zoom without needing Shift for the plus key.
+<minus> { set_scale_level_relative(0.9); }
+<equal> { set_scale_level_relative(1.1); }
+
 # Enter opens the thumbnail montage; Enter selects an image while in montage.
 <Return> { montage_mode_enter(); }
 

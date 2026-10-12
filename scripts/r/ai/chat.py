@@ -135,6 +135,10 @@ async def complete_chat(
             endpoint_url += "/chat/completions"
 
         extra_payload = {}
+        if selected_model.image_resolution:
+            extra_payload["image_config"] = {
+                "resolution": selected_model.image_resolution
+            }
         if selected_model.reasoning_effort:
             extra_payload.setdefault("extra_body", {})["reasoning"] = {
                 "effort": selected_model.reasoning_effort
