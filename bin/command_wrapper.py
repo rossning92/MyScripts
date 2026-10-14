@@ -41,6 +41,7 @@ def _format_seconds(seconds: float) -> str:
 
 if __name__ == "__main__":
     close_on_exit = int(os.environ.get("CMDW_CLOSE_ON_EXIT", "1"))
+    show_running_status = int(os.environ.get("CMDW_SHOW_RUNNING_STATUS", "0"))
     window_title = os.environ.get("CMDW_WINDOW_TITLE")
 
     start_time = time.time()
@@ -49,6 +50,8 @@ if __name__ == "__main__":
     script_path = os.path.abspath(args[0])
     if window_title:
         clear_notifications(app=window_title)
+        if show_running_status:
+            send_notify(app=window_title, hint="running")
 
     try:
         code = subprocess.call(args)
