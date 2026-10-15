@@ -87,6 +87,8 @@ var IMG = ["png","jpg","jpeg","gif","webp","svg","bmp","ico","tiff"];
 var VID = ["mp4","webm","mov","avi","mkv"];
 var AUD = ["mp3","wav","ogg","flac","aac"];
 var MD = ["md","markdown","mdown","mkd"];
+var TRACE = ["pftrace","perfetto-trace"];
+var PERFETTO = "https://interncache-all.fbcdn.net/manifold/perfetto-artifacts/tree/ui/index.html";
 
 function loadScript(url) {
     return new Promise(function (res, rej) {
@@ -104,6 +106,24 @@ function loadStyle(url) {
     link.rel = "stylesheet";
     link.href = url;
     document.head.appendChild(link);
+}
+
+// Perfetto UI cannot fetch localhost cross-origin (Chrome local network access),
+// so fetch the trace here and hand it over via postMessage.
+function openInPerfetto(src, name) {
+    var origin = new URL(PERFETTO).origin;
+    var buffer = fetch(src).then(function (r) { return r.arrayBuffer(); });
+    var win = window.open(PERFETTO);
+    if (!win) return;
+    var timer = setInterval(function () { win.postMessage("PING", origin); }, 100);
+    window.addEventListener("message", function onMsg(e) {
+        if (e.origin !== origin || e.data !== "PONG") return;
+        clearInterval(timer);
+        window.removeEventListener("message", onMsg);
+        buffer.then(function (buf) {
+            win.postMessage({ perfetto: { buffer: buf, title: name } }, origin);
+        });
+    });
 }
 
 function renderMarkdown(v, text) {
@@ -330,6 +350,9 @@ if (path) {
             if (window.Annotator) Annotator.disable();
         } else if (AUD.indexOf(e) >= 0) {
             v.innerHTML = '<audio controls src="' + src + '"></audio>';
+            if (window.Annotator) Annotator.disable();
+        } else if (TRACE.indexOf(e) >= 0) {
+            if (!bust) openInPerfetto(src, name);
             if (window.Annotator) Annotator.disable();
         } else if (e === "pdf") {
             v.innerHTML = '<iframe src="' + src + '"></iframe>';

@@ -29,7 +29,12 @@ def main() -> None:
     args = parser.parse_args()
 
     sources = args.source or [Path(get_my_script_root()) / ".agents" / "skills"]
-    install_skills(sources, Path(get_data_dir()) / "skills")
+    for target_dir in [
+        Path(get_data_dir()) / "skills",
+        Path.home() / ".claude" / "skills",
+        Path.home() / ".codex" / "skills",
+    ]:
+        install_skills(sources, target_dir)
 
 
 if __name__ == "__main__":
