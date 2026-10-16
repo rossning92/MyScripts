@@ -579,6 +579,16 @@ awful.rules.rules = { -- All clients will match this rule.
 
 -- {{{ Signals
 -- Signal function to execute when a new client appears.
+local function place_browsercli_screencast(c)
+    if c.name == "browsercli screencast" then
+        max_pin_layout.pin(c)
+    end
+end
+
+for _, c in ipairs(client.get()) do
+    place_browsercli_screencast(c)
+end
+
 client.connect_signal("manage", function(c)
     -- Set the windows at the slave,
     -- i.e. put it at the end of others instead of setting it master.
@@ -588,6 +598,9 @@ client.connect_signal("manage", function(c)
         -- Prevent clients from being unreachable after screen count changes.
         awful.placement.no_offscreen(c)
     end
+
+    place_browsercli_screencast(c)
+    c:connect_signal("property::name", place_browsercli_screencast)
 
 end)
 

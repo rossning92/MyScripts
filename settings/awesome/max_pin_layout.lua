@@ -103,6 +103,30 @@ local function unpin(focus_client)
     end
 end
 
+-- Pin a specific client on the right without cycling an existing pin.
+function M.pin(c)
+    if not c or not c.valid then return end
+    if pin_state and pin_state.client == c then
+        awful.layout.arrange(c.screen)
+        return
+    end
+    if pin_state then unpin() end
+
+    pin_state = {
+        client = c,
+        floating = c.floating,
+        fullscreen = c.fullscreen,
+        maximized = c.maximized,
+        split_index = 1,
+    }
+
+    c.fullscreen = false
+    c.maximized = false
+    c.floating = false
+    c:emit_signal("request::activate", "max_pin_layout.pin", { raise = true })
+    awful.layout.arrange(c.screen)
+end
+
 -- Pin the focused client on the right. Further invocations cycle through the
 -- configured pane ratios, then restore the normal max layout.
 function M.cycle_pin(c)
@@ -119,22 +143,7 @@ function M.cycle_pin(c)
         pin_state = nil
     end
 
-    c = c or client.focus
-    if not c or not c.valid then return end
-
-    pin_state = {
-        client = c,
-        floating = c.floating,
-        fullscreen = c.fullscreen,
-        maximized = c.maximized,
-        split_index = 1,
-    }
-
-    c.fullscreen = false
-    c.maximized = false
-    c.floating = false
-    c:emit_signal("request::activate", "max_pin_layout.pin", { raise = true })
-    awful.layout.arrange(c.screen)
+    M.pin(c or client.focus)
 end
 
 return M

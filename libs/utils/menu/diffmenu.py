@@ -57,12 +57,15 @@ def _is_section_start(line: str) -> bool:
     return line.startswith("@@ ") or line.startswith("diff --git")
 
 
-def _build_stage_patch(diff_lines: List[str], selected: Set[int]) -> Optional[str]:
+def _build_stage_patch(
+    diff_lines: List[str], selected: Set[int], reverse: bool = False
+) -> Optional[str]:
     """Build a git patch containing only the selected +/- lines.
 
     Unselected additions are dropped and unselected deletions become context
-    lines. so applying the patch with `git apply --cached` stages only the
-    changes the user picked. Returns None if the selection has no real change.
+    lines. `reverse` builds the patch for `git apply --reverse` (undo the
+    selected changes in the working tree), so those two rules are swapped.
+    Returns None if the selection has no real change.
     """
     patch: List[str] = []
     file_header: Optional[List[str]] = None
@@ -87,17 +90,12 @@ def _build_stage_patch(diff_lines: List[str], selected: Set[int]) -> Optional[st
             while i < n and not _is_section_start(diff_lines[i]):
                 cur = diff_lines[i]
                 tag = cur[:1]
-                if tag == "+":
+                if tag in ("+", "-"):
                     if i in selected:
                         body.append(cur)
                         has_change = True
-                    # Unselected addition. drop it.
-                elif tag == "-":
-                    if i in selected:
-                        body.append(cur)
-                        has_change = True
-                    else:
-                        # Unselected deletion stays as context.
+                    elif tag == ("+" if reverse else "-"):
+                        # Already on the side the patch applies to. keep as context.
                         body.append(" " + cur[1:])
                 elif tag == "\\":
                     body.append(cur)  # "\ No newline at end of file" marker.
@@ -283,7 +281,9 @@ class DiffMenu(TextMenu):
         selected = set(self.get_selected_indices())
         if not selected:
             return
-        patch = _build_stage_patch(self.__diff_lines, selected)
+        patch = _build_stage_patch(
+            self.__diff_lines, selected, reverse="--reverse" in extra_args
+        )
         if patch is None:
             self.set_message(f"no changes in selection to {action}")
             return

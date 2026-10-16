@@ -101,7 +101,8 @@
         color: var(--chrome-focus);
         background: rgba(138, 180, 248, 0.16);
       }
-      #sessionSelect {
+      #toolbar #sessionBtn {
+        width: auto;
         max-width: 140px;
         height: 34px;
         margin-left: 4px;
@@ -140,10 +141,13 @@
       #addr::placeholder {
         color: #9aa0a6;
       }
+      #sessionPicker { position: relative; }
+      #sessionBtn[aria-expanded="true"],
       #viewportBtn[aria-expanded="true"] {
         color: var(--chrome-focus);
         background: rgba(138, 180, 248, 0.16);
       }
+      #sessionMenu,
       #viewportMenu {
         position: absolute;
         top: 44px;
@@ -156,9 +160,13 @@
         box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
         z-index: 4;
       }
+      #sessionMenu { top: 40px; left: 0; right: auto; max-height: 70vh; overflow-y: auto; }
+      .session-row { display: flex; align-items: center; }
+      #sessionMenu[hidden],
       #viewportMenu[hidden] {
         display: none;
       }
+      #toolbar #sessionMenu button,
       #toolbar #viewportMenu button {
         display: flex;
         align-items: center;
@@ -171,6 +179,9 @@
         font-size: 13px;
         text-align: left;
       }
+      #toolbar #sessionMenu .session-choice { flex: 1; min-width: 0; overflow: hidden; }
+      #toolbar #sessionMenu .session-close { width: 34px; flex: 0 0 34px; justify-content: center; }
+      #sessionMenu [aria-checked="true"] { background: rgba(138, 180, 248, 0.16); }
       #toolbar #viewportMenu button::before {
         width: 18px;
         margin-right: 6px;
@@ -290,7 +301,10 @@
           <path d="M20 4v6h-6" />
         </svg>
       </button>
-      <select id="sessionSelect" title="Session" aria-label="Session"></select>
+      <div id="sessionPicker">
+        <button id="sessionBtn" title="Session" aria-label="Session" aria-haspopup="menu" aria-expanded="false">default</button>
+        <div id="sessionMenu" role="menu" aria-label="Sessions" hidden></div>
+      </div>
       <input
         id="addr"
         type="text"
@@ -442,35 +456,137 @@
       }
 
       const addr = document.getElementById("addr");
-      const sessionSelect = document.getElementById("sessionSelect");
+      const sessionBtn = document.getElementById("sessionBtn");
+      const sessionMenu = document.getElementById("sessionMenu");
       const searchParams = new URLSearchParams(location.search);
       const currentSession = searchParams.get("session") ?? "";
       let sessionsKey = null;
+      let closingSession = false;
+      sessionBtn.textContent = currentSession || "default";
 
       async function refreshSessions() {
         try {
           const res = await fetch("/sessions");
+          if (!res.ok) throw new Error("Unable to list sessions");
+          const activeSessions = (await res.json()).map((s) => s ?? "");
           const names = [
-            ...new Set(["", currentSession, ...(await res.json()).map((s) => s ?? "")]),
+            ...new Set(["", currentSession, ...activeSessions]),
           ].sort();
-          const key = names.join("\n");
+          const key = JSON.stringify([names, activeSessions.slice().sort(), closingSession]);
           if (key === sessionsKey) return;
           sessionsKey = key;
-          sessionSelect.replaceChildren(
-            ...names.map((name) => new Option(name || "default", name)),
-          );
-          sessionSelect.value = currentSession;
+          sessionMenu.replaceChildren(...names.map((name) => {
+            const row = document.createElement("div");
+            row.className = "session-row";
+            row.setAttribute("role", "none");
+            const choice = document.createElement("button");
+            choice.className = "session-choice";
+            choice.textContent = name || "default";
+            choice.title = name || "default";
+            choice.setAttribute("role", "menuitemradio");
+            choice.setAttribute("aria-checked", String(name === currentSession));
+            choice.disabled = closingSession;
+            choice.addEventListener("click", () => switchSession(name));
+            const close = document.createElement("button");
+            close.className = "session-close";
+            close.textContent = "\u00d7";
+            close.title = `Close ${name || "default"} session (all tabs)`;
+            close.setAttribute("aria-label", close.title);
+            close.setAttribute("role", "menuitem");
+            close.disabled = closingSession || !activeSessions.includes(name);
+            close.addEventListener("click", () => closeSession(name));
+            row.append(choice, close);
+            return row;
+          }));
         } catch {}
       }
 
-      sessionSelect.addEventListener("change", () => {
-        if (sessionSelect.value) {
-          searchParams.set("session", sessionSelect.value);
+      function switchSession(name) {
+        if (name) {
+          searchParams.set("session", name);
         } else {
           searchParams.delete("session");
         }
         location.search = searchParams.toString();
+      }
+
+      function closeSessionMenu() {
+        sessionMenu.hidden = true;
+        sessionBtn.setAttribute("aria-expanded", "false");
+      }
+      sessionBtn.addEventListener("click", async () => {
+        const willOpen = sessionMenu.hidden;
+        closeViewportMenu();
+        sessionMenu.hidden = !willOpen;
+        sessionBtn.setAttribute("aria-expanded", String(willOpen));
+        if (willOpen) {
+          await refreshSessions();
+          sessionMenu.querySelector('[aria-checked="true"]')?.focus();
+        }
       });
+      document.addEventListener("click", (event) => {
+        if (!event.target.closest("#sessionPicker")) closeSessionMenu();
+      });
+      sessionMenu.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          closeSessionMenu();
+          sessionBtn.focus();
+          return;
+        }
+        const buttons = [...sessionMenu.querySelectorAll("button:not(:disabled)")];
+        const index = buttons.indexOf(document.activeElement);
+        let next;
+        if (event.key === "ArrowDown") next = (index + 1) % buttons.length;
+        if (event.key === "ArrowUp") next = (index - 1 + buttons.length) % buttons.length;
+        if (event.key === "Home") next = 0;
+        if (event.key === "End") next = buttons.length - 1;
+        if (next !== undefined) {
+          event.preventDefault();
+          buttons[next]?.focus();
+        }
+      });
+
+      async function closeSession(name) {
+        if (closingSession) return;
+        closingSession = true;
+        sessionMenu.querySelectorAll("button").forEach((button) => { button.disabled = true; });
+        try {
+          const query = name ? `?session=${encodeURIComponent(name)}` : "";
+          const res = await fetch("/command" + query, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ command: "close-browser" }),
+          });
+          const result = await res.json();
+          if (!res.ok || result.error) {
+            throw new Error(result.error || "Unable to close session");
+          }
+        } catch (error) {
+          closingSession = false;
+          sessionsKey = null;
+          await refreshSessions();
+          alert(`Unable to close session: ${error.message}`);
+          return;
+        }
+        if (name !== currentSession) {
+          closingSession = false;
+          sessionsKey = null;
+          await refreshSessions();
+          sessionMenu.querySelector('[aria-checked="true"]')?.focus();
+          return;
+        }
+        let nextSession = "";
+        try {
+          const res = await fetch("/sessions");
+          if (res.ok) {
+            nextSession = (await res.json())
+              .map((name) => name ?? "")
+              .filter((name) => name !== currentSession)
+              .sort()[0] ?? "";
+          }
+        } catch {}
+        switchSession(nextSession);
+      }
       const backBtn = document.getElementById("backBtn");
       const fwdBtn = document.getElementById("fwdBtn");
       const reloadBtn = document.getElementById("reloadBtn");
@@ -590,6 +706,7 @@
       }
 
       viewportBtn.addEventListener("click", () => {
+        closeSessionMenu();
         const willOpen = viewportMenu.hidden;
         viewportMenu.hidden = !willOpen;
         viewportBtn.setAttribute("aria-expanded", String(willOpen));
@@ -748,7 +865,6 @@
       function startScreencast() {
         send("Page.startScreencast", {
           format: "jpeg",
-          quality: 50,
           everyNthFrame: 1,
         });
       }
@@ -833,11 +949,13 @@
 
       // Single poll loop handles initial connection, disconnects, and tab switches
       async function poll() {
+        if (closingSession) return;
         try {
           refreshViewport();
           refreshSessions();
           const res = await fetch("/active-ws" + location.search);
           const { ws: activeWs } = await res.json();
+          if (closingSession) return;
           if (activeWs && activeWs !== currentWsUrl) {
             connect(activeWs);
           } else if (ws && ws.readyState === WebSocket.OPEN) {
