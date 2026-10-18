@@ -43,6 +43,7 @@ class VcsDiffView(DiffMenu):
 
 class VcsDiffMenu(Menu):
     _vcs: str = ""
+    _rev: str = ""
 
     def __init__(self, prompt_prefix: str = ""):
         super().__init__(close_on_selection=False, quick_select=True)
@@ -70,6 +71,14 @@ class VcsDiffMenu(Menu):
             pinned=True,
         )
         self._init_extra_commands()
+        self.add_command(
+            lambda: self._move_commit(1),
+            hotkey="alt+p", name="prev commit", pinned=True,
+        )
+        self.add_command(
+            lambda: self._move_commit(-1),
+            hotkey="alt+n", name="next commit", pinned=True,
+        )
         self.add_command(self.__discard, hotkey="ctrl+d", name="discard", pinned=True)
         self.add_command(self.__commit, hotkey="alt+c", name="commit", pinned=True)
         self.add_command(
@@ -90,7 +99,7 @@ class VcsDiffMenu(Menu):
         # True when the listed files are not the ones a mutating command would touch.
         return False
 
-    def __reject_if_readonly(self) -> bool:
+    def _reject_if_readonly(self) -> bool:
         if self._is_readonly():
             self.set_message("read-only while viewing a past commit")
             return True
@@ -105,8 +114,30 @@ class VcsDiffMenu(Menu):
     def _get_vcs_prompt(self, is_clean: bool) -> str:
         raise NotImplementedError
 
-    def _get_recent_commits(self) -> List[str]:
+    def _commit_choices(self) -> List[Tuple[str, str]]:
         return []
+
+    def _get_recent_commits(self) -> List[str]:
+        return [
+            f"{'* ' if rev == self._rev else '  '}{label}"
+            for rev, label in self._commit_choices()
+        ]
+
+    def _move_commit(self, step: int) -> None:
+        choices = self._commit_choices()
+        if not choices:
+            return
+        index = next(
+            (i for i, (rev, _) in enumerate(choices) if rev == self._rev), 0
+        )
+        index = max(0, min(index + step, len(choices) - 1))
+        rev = choices[index][0]
+        if rev == self._rev:
+            return
+        self._rev = rev
+        self.set_selected_row(0)
+        self.set_multi_select(False)
+        self._refresh()
 
     def _get_filename(self, item: str) -> str:
         raise NotImplementedError
@@ -242,7 +273,7 @@ class VcsDiffMenu(Menu):
         start_script("ext/filemgr.py", args=[filename])
 
     def __commit(self, sync: bool = False) -> None:
-        if self.__reject_if_readonly():
+        if self._reject_if_readonly():
             return
         items = list(self.get_selected_items())
         if not items:
@@ -261,7 +292,7 @@ class VcsDiffMenu(Menu):
         self.__commit(sync=True)
 
     def __amend(self, push: bool = False) -> None:
-        if self.__reject_if_readonly():
+        if self._reject_if_readonly():
             return
         if push and self._vcs == "hg":
             self.set_message("amend+push is not supported for hg")
@@ -283,7 +314,7 @@ class VcsDiffMenu(Menu):
         self.__amend(push=True)
 
     def __discard(self) -> None:
-        if self.__reject_if_readonly():
+        if self._reject_if_readonly():
             return
         items = list(self.get_selected_items())
         if not items:

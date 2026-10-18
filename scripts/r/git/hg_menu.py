@@ -1,8 +1,6 @@
 import os
 import subprocess
 
-from utils.menu.menu import Menu
-
 from git.vcs import get_hg_recent_commits, run_vcs
 from git.vcs_menu import VcsDiffMenu
 
@@ -41,12 +39,6 @@ class HgMenu(VcsDiffMenu):
             return []
         return [(".", "(working copy)")] + [(c.split()[0], c) for c in commits]
 
-    def _get_recent_commits(self):
-        return [
-            f"{'* ' if rev == self._rev else '  '}{label}"
-            for rev, label in self._commit_choices()
-        ]
-
     def _get_status_items(self):
         if self._rev == ".":
             status = _hg("status")
@@ -65,19 +57,6 @@ class HgMenu(VcsDiffMenu):
             return f"{repo_name} ({bookmark}) [{self._rev}]"
         dirty_marker = "" if is_clean else " *"
         return f"{repo_name} ({bookmark}{dirty_marker})"
-
-    def _select_commit(self):
-        choices = self._commit_choices()
-        idx = Menu(
-            items=[label for _, label in choices],
-            prompt="select commit",
-            quick_select=True,
-        ).exec()
-        if idx < 0:
-            return
-        self._rev = choices[idx][0]
-        self.set_selected_row(0)
-        self._refresh()
 
     def get_item_color(self, item):
         status = item[:2]
@@ -117,9 +96,6 @@ class HgMenu(VcsDiffMenu):
 
     def _init_extra_commands(self):
         self.add_command(self._diff_incl_head)
-        self.add_command(
-            self._select_commit, hotkey="alt+s", name="select commit", pinned=True
-        )
 
     def _diff_incl_head(self):
         # Diff from the parent of the current commit through the working tree,

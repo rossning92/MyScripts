@@ -18,9 +18,9 @@ class StatusSignals(QtCore.QObject):
 class StatusOverlay(QtWidgets.QWidget):
     """Small, animated, focusless Material-style status pill."""
 
-    _WINDOW_SIZE = QtCore.QSize(96, 48)
+    _WINDOW_SIZE = QtCore.QSize(128, 56)
     _BOTTOM_MARGIN = 24
-    _WAVEFORM_BARS = 17
+    _WAVEFORM_BARS = 15
     _SURFACE = QtGui.QColor("#2B2930")
     _OUTLINE = QtGui.QColor("#49454F")
     _PRIMARY = QtGui.QColor("#A8C7FA")
@@ -81,14 +81,16 @@ class StatusOverlay(QtWidgets.QWidget):
         if self._status == "listening":
             painter.setBrush(self._PRIMARY)
             center = pill.center().y()
+            bar_width = 4 * unit
+            bar_radius = bar_width / 2
             for index, level in enumerate(self._level_history):
-                height = (2 + level * 19) * unit
+                height = (6 + level * 22) * unit
                 offset = index - (self._WAVEFORM_BARS - 1) / 2
-                x = pill.center().x() + offset * 4 * unit - unit
+                x = pill.center().x() + offset * 6 * unit - bar_radius
                 painter.drawRoundedRect(
-                    QtCore.QRectF(x, center - height / 2, 2 * unit, height),
-                    unit,
-                    unit,
+                    QtCore.QRectF(x, center - height / 2, bar_width, height),
+                    bar_radius,
+                    bar_radius,
                 )
         elif self._status == "transcribing":
             for index in range(3):

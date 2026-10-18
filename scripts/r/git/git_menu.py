@@ -68,9 +68,22 @@ def _parse_name_status(output: str) -> List[GitStatusItem]:
 
 class GitMenu(VcsDiffMenu):
     _vcs = "git"
+    _rev = "HEAD"
 
-    def _get_recent_commits(self):
-        return get_git_recent_commits()
+    def _is_readonly(self):
+        return self._rev != "HEAD"
+
+    def _commit_choices(self):
+        commits = [
+            (commit.split()[0], commit) for commit in get_git_recent_commits()
+        ]
+        status = _git_output("status", "--porcelain=v1", "-z", "-u", text=True)
+        if status:
+            return [("HEAD", "(working copy)")] + commits
+        if commits:
+            # HEAD displays the latest commit when the working tree is clean.
+            commits[0] = ("HEAD", commits[0][1])
+        return commits
 
     def _init_extra_commands(self):
         self.add_command(self.__stage, hotkey="ctrl+s", name="stage", pinned=True)
@@ -78,9 +91,11 @@ class GitMenu(VcsDiffMenu):
 
     def _get_status_items(self):
         try:
-            status = _git_output(
-                "status", "--porcelain=v1", "-z", "-u", text=True
-            )
+            status = ""
+            if not self._is_readonly():
+                status = _git_output(
+                    "status", "--porcelain=v1", "-z", "-u", text=True
+                )
             if status:
                 return _parse_porcelain_status(status), False
             else:
@@ -89,7 +104,9 @@ class GitMenu(VcsDiffMenu):
                     "--name-status",
                     "-z",
                     "--format=",
-                    "HEAD",
+                    "--diff-merges=first-parent",
+                    self._rev,
+                    "--",
                     text=True,
                 )
                 return _parse_name_status(show_output), True
@@ -108,6 +125,8 @@ class GitMenu(VcsDiffMenu):
             ).strip()
         except subprocess.CalledProcessError:
             branch = "?"
+        if self._is_readonly():
+            return f"{repo_name} ({branch}) [{self._rev}]"
         dirty_marker = "" if is_clean else " *"
         return f"{repo_name} ({branch}{dirty_marker})"
 
@@ -140,12 +159,16 @@ class GitMenu(VcsDiffMenu):
             run_vcs("git", "checkout", "HEAD", "--", filename)
 
     def __stage(self):
+        if self._reject_if_readonly():
+            return
         for item in self.get_selected_items():
             filename = self._get_filename(item)
             run_vcs("git", "add", "--", filename)
         self._after_action()
 
     def __unstage(self):
+        if self._reject_if_readonly():
+            return
         for item in self.get_selected_items():
             filename = self._get_filename(item)
             run_vcs("git", "reset", "HEAD", "--", filename)
@@ -164,15 +187,27 @@ class GitMenu(VcsDiffMenu):
 
     def _diff_all(self):
         if self._is_clean:
-            git_args = ["HEAD~1", "HEAD"]
+            self._open_commit_diff()
         else:
-            git_args = []
-        self._open_diff(git_args=git_args)
+            self._open_diff(git_args=[])
+
+    def _open_commit_diff(self, item=None):
+        # show also handles the root commit, which has no parent to diff against.
+        cmd = [
+            "git", "-c", "core.quotePath=false", "show", "--format=",
+            "--diff-merges=first-parent", "-U3", "--color", self._rev, "--",
+        ]
+        if item is not None:
+            if item.old_path:
+                cmd.append(item.old_path)
+            cmd.append(item.path)
+        self._open_diff(root=os.getcwd(), diff_cmd=cmd)
 
     def on_item_selected(self, item):
         filename = self._get_filename(item)
         if self._is_clean:
-            git_args = ["HEAD~1", "HEAD", filename]
+            self._open_commit_diff(item)
+            return
         elif item.status == "??":
             self._open_diff(untracked_file=filename)
             return
