@@ -171,6 +171,14 @@
       "packages": ["dmenu"]
     }
   },
+  "diff-highlight": {
+    "apt": {
+      "commands": [
+        "run_script r/git/install_diff_highlight.sh"
+      ]
+    },
+    "executables": ["diff-highlight"]
+  },
   "docker": {
     "apt": {
       "packages": ["docker.io"]
@@ -324,6 +332,9 @@
   },
   "gh": {
     "apt": {
+      "commands": [
+        "run_script r/git/install_gh.debian.linux.sh"
+      ],
       "packages": ["gh"]
     },
     "choco": {

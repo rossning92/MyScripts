@@ -36,7 +36,9 @@ _MODULE_NAME = "repos"
 class Repo:
     def __init__(self, path: str):
         self.path = path
-        self.is_git = os.path.isdir(os.path.join(path, ".git"))
+        # In a linked worktree, .git is a file pointing at the main repo's
+        # gitdir; in a primary checkout it is a directory.
+        self.is_git = os.path.exists(os.path.join(path, ".git"))
         self.is_hg = not self.is_git and os.path.isdir(os.path.join(path, ".hg"))
         self.branch: Optional[str] = None
         self.upstream: Optional[str] = None

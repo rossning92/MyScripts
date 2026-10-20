@@ -1,5 +1,14 @@
 (function () {
     var KEY = "ropen-theme";
+    var mq = matchMedia("(prefers-color-scheme: light)");
+
+    function systemTheme() {
+        return mq.matches ? "light" : "dark";
+    }
+
+    function preferred() {
+        return localStorage.getItem(KEY) || systemTheme();
+    }
 
     function apply(t) {
         document.documentElement.dataset.theme = t;
@@ -13,7 +22,9 @@
 
     function toggle() {
         var t = document.documentElement.dataset.theme === "light" ? "dark" : "light";
-        localStorage.setItem(KEY, t);
+        // Drop the saved choice when it matches the system, so the page follows the system again.
+        if (t === systemTheme()) localStorage.removeItem(KEY);
+        else localStorage.setItem(KEY, t);
         apply(t);
     }
 
@@ -33,7 +44,8 @@
     };
 
     window.Theme = { toggle: toggle, hljsStyle: hljsStyle };
-    apply(localStorage.getItem(KEY) || "dark");
+    apply(preferred());
+    mq.addEventListener("change", function () { apply(preferred()); });
 
     document.addEventListener("DOMContentLoaded", function () {
         var b = document.getElementById("themebtn");
@@ -42,7 +54,7 @@
         b.onclick = toggle;
     });
     window.addEventListener("storage", function (e) {
-        if (e.key === KEY) apply(e.newValue || "dark");
+        if (e.key === KEY) apply(preferred());
     });
     document.addEventListener("keydown", function (e) {
         if (e.altKey && !e.ctrlKey && !e.metaKey && e.code === "KeyT") {

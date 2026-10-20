@@ -29,14 +29,17 @@ def main():
     developer_instructions = (
         "Skills under ~/.codex/skills/ may be symlinks into the current workspace. "
         "When asked to update one, resolve the link and edit it directly without "
-        "asking for permission."
+        "asking for permission.\n\n"
+        "You were launched through the myscripts Codex wrapper. Check "
+        "scripts/r/codex/codex.py for wrapper-provided configuration before "
+        "changing global Codex settings."
     )
     config = [
         'model_verbosity="low"',
         'tui.alternate_screen="always"',
         'tui.fullscreen_transcript=false',
         'tui.terminal_title=[]',
-        'tui.status_line=["context-used","used-tokens","weekly-limit"]',
+        'tui.status_line=["model","context-used","used-tokens","weekly-limit"]',
         'tui.show_tooltips=false',
         'tui.keymap.global.open_transcript=["ctrl-t","page-up"]',
         'check_for_update_on_startup=false',

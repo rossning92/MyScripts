@@ -669,8 +669,6 @@ class Menu(Generic[T]):
             self.add_command(self.__toggle_multi_select, hotkey="ctrl+x")
             self.add_command(self.__toggle_wrap, hotkey="alt+z")
             self.add_command(self.paste, hotkey="ctrl+v")
-            self.add_command(self.voice_input, hotkey="alt+v")
-            self.add_command(self.voice_input, hotkey="space space")
             self.add_command(self.yank, hotkey="ctrl+y")
 
             for item in self.items:
@@ -770,38 +768,6 @@ class Menu(Generic[T]):
             Menu._should_update_screen = True
         self.__is_stdscr_owner = False
         self.on_close()
-
-    def voice_input(self):
-        from utils.menu.exceptionmenu import ExceptionMenu
-        from utils.menu.recordmenu import RecordMenu
-        from utils.menu.speechtotextmenu import SpeechToTextMenu
-
-        record_menu = RecordMenu()
-        try:
-            record_menu.exec()
-        except NotImplementedError:
-            self.set_message("Error: voice input not implemented")
-            return
-
-        out_file = record_menu.get_output_file()
-        if not out_file:
-            return
-
-        try:
-
-            def process_stt():
-                stt_menu = SpeechToTextMenu(out_file)
-                stt_menu.exec()
-                text = stt_menu.get_result()
-                if text:
-                    self.insert_text(text)
-                    if not record_menu.space_pressed:
-                        self.on_enter_pressed()
-
-            ExceptionMenu.retry(process_stt)
-        finally:
-            if os.path.exists(out_file):
-                os.remove(out_file)
 
     def __select_all(self):
         if len(self.get_item_indices()) == 0:
@@ -1275,22 +1241,6 @@ class Menu(Generic[T]):
 
             elif ch == "@" and "@" in self.__hotkeys:
                 self.__trigger_hotkey("@")
-
-            elif (
-                ch == " "
-                and self.__last_key == " "
-                and self.__input.text == " "
-                and "space space" in self.__hotkeys
-            ):
-                if (
-                    self.__allow_input
-                    and self.__input.caret_pos > 0
-                    and self.__input.text[self.__input.caret_pos - 1] == " "
-                ):
-                    self.__input.on_char(curses.KEY_BACKSPACE)
-                self.__trigger_hotkey("space space")
-                self.update_screen()
-                ch = -1
 
             elif ch == " " and self.__input.text == "" and "space" in self.__hotkeys:
                 self.__trigger_hotkey("space")

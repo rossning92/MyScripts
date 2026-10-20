@@ -554,8 +554,7 @@ class FileMenu(Menu[_File]):
                         self.set_message("Copy cancelled; partial files remain")
                         return
 
-                self.goto_directory(dest_dir, selected_file=os.path.basename(files[0]))
-                self.set_multi_select(False)
+                self._refresh_cur_dir()
 
     def copy_to(self, file: Optional[str] = None):
         self._copy_or_move_files(file=file, copy=True)
