@@ -437,7 +437,7 @@ def _main():
     add_parser.add_argument(
         "--desc",
         required=True,
-        help="Description of the todo item (multiline text is supported)",
+        help="Description of the todo item (multiline text is supported). Start with a verb, keep it minimal",
     )
     add_parser.add_argument("--due", help="Due date/time")
 

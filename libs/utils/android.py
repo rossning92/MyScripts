@@ -482,10 +482,12 @@ def get_adk_path():
 
     elif sys.platform == "linux":
         ADK_SEARCH_PATH = [
-            "/usr/lib/android-sdk",  # Debian/Ubuntu
-            "/opt/android-sdk/",  # arch linux
+            # Prefer the user's Android Studio / command-line SDK.
             os.path.expanduser("~/Android/Sdk"),
             os.path.expanduser("~/android-sdk"),
+            # System package locations are fallbacks.
+            "/usr/lib/android-sdk",  # Debian/Ubuntu
+            "/opt/android-sdk/",  # arch linux
         ]
 
     else:

@@ -354,7 +354,7 @@ if (path) {
         } else if (TRACE.indexOf(e) >= 0) {
             if (!bust) openInPerfetto(src, name);
             if (window.Annotator) Annotator.disable();
-        } else if (e === "pdf") {
+        } else if (e === "pdf" || e === "html" || e === "htm") {
             v.innerHTML = '<iframe src="' + src + '"></iframe>';
             if (window.Annotator) Annotator.disable();
         } else if (MD.indexOf(e) >= 0) {

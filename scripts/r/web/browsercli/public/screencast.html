@@ -757,7 +757,17 @@
           );
         } catch (error) {}
       }
-      refreshViewport();
+      const requestedViewport = searchParams.get("viewport");
+      if (requestedViewport) {
+        setViewport(requestedViewport)
+          .then(refreshViewport)
+          .catch((error) => {
+            console.error(error);
+            refreshViewport();
+          });
+      } else {
+        refreshViewport();
+      }
       function focusRemoteInput() {
         hiddenInput.focus({ preventScroll: true });
       }
