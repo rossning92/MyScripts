@@ -30,8 +30,11 @@ def save_json(file: str, data):
     dir_path = os.path.dirname(file)
     if dir_path:
         os.makedirs(dir_path, exist_ok=True)
-    with open(file, "w", encoding="utf-8") as f:
+    # Write to a temp file then rename, so readers never see a half-written file.
+    tmp_file = f"{file}.{os.getpid()}.tmp"
+    with open(tmp_file, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False, sort_keys=True)
+    os.replace(tmp_file, file)
 
 
 def try_load_json(

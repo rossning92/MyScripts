@@ -1,8 +1,11 @@
 import argparse
 import os
 import sys
+from contextlib import nullcontext
 from datetime import datetime
 from typing import Any, Dict, List, Literal, NotRequired, Optional, TypedDict
+
+from _filelock import FileLock
 
 from utils.dateutil import format_timestamp, parse_datetime
 from utils.editor import edit_text
@@ -462,6 +465,13 @@ def _main():
 
     args = parser.parse_args()
 
+    # Writes hold the lock from load to save, so concurrent calls don't drop each other's changes.
+    lock = FileLock("todo_list") if args.command in ("add", "delete", "edit") else nullcontext()
+    with lock:
+        _run_command(args)
+
+
+def _run_command(args):
     if args.command == "add":
         _add_todo(data_file=args.data_file, desc=args.desc, due=args.due)
     elif args.command == "delete":
